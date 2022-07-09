@@ -1,0 +1,17 @@
+process:
+1. Get image,
+2. blur
+3. Threshold
+4. Identify contours.
+5. From that get a target point. 
+6. Target that from current position using encoder.
+
+
+
+lh 25
+hh 35
+
+ls 45
+hs 244
+lv 97
+hv 247

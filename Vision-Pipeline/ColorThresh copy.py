@@ -1,14 +1,17 @@
 from __future__ import print_function
 import cv2 as cv
 import argparse
+import cameracorrection
+import imageprocessing
+
 max_value = 255
 max_value_H = 360//2
 low_H = 25
-low_S = 10
-low_V = 200
-high_H = 44
-high_S = 200
-high_V = 255
+low_S = 45
+low_V = 97
+high_H = 35
+high_S = 244
+high_V = 247
 window_capture_name = 'Video Capture'
 window_detection_name = 'Object Detection'
 low_H_name = 'Low H'
@@ -64,7 +67,8 @@ parser = argparse.ArgumentParser(description='Code for Thresholding Operations u
 parser.add_argument('--camera', help='Camera divide number.', default=0, type=int)
 args = parser.parse_args()
 #cap = cv.VideoCapture(args.camera)
-cap = cv.VideoCapture('Images/CorrectTape.mp4')
+cap = cv.VideoCapture(1)
+#cap = cv.VideoCapture('Images/CorrectTape.mp4')
 cv.namedWindow(window_capture_name)
 cv.namedWindow(window_detection_name)
 cv.createTrackbar(low_H_name, window_detection_name , low_H, max_value_H, on_low_H_thresh_trackbar)
@@ -75,15 +79,18 @@ cv.createTrackbar(low_V_name, window_detection_name , low_V, max_value, on_low_V
 cv.createTrackbar(high_V_name, window_detection_name , high_V, max_value, on_high_V_thresh_trackbar)
 while True:
     
-    ret, frame = cap.read()
-    if frame is None:
+    ret, frameundistort = cap.read()
+    if frameundistort is None:
         break
-    frame = rescaleFrame(frame, 0.4)
+    #frame = rescaleFrame(frame, 0.4)
+    frame = cameracorrection.undistort(frameundistort)
+  
+  
     frame_HSV = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
     frame_threshold = cv.inRange(frame_HSV, (low_H, low_S, low_V), (high_H, high_S, high_V))
-    
-    
     cv.imshow(window_capture_name, frame)
+    frame_opened = imageprocessing.openImage(frame_threshold)
+    cv.imshow('opened', frame_opened)
     cv.imshow(window_detection_name, frame_threshold)
     
     key = cv.waitKey(30)
