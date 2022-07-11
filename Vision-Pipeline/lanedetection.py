@@ -8,12 +8,27 @@ def detectLineSegments(frame):
     angle = np.pi / 180 # angular precision in radian, i.e. 1 degree
     min_threshold = 10  # minimal of votes
     line_segments = cv.HoughLinesP(frame, rho, angle, min_threshold, 
-                                    np.array([]), minLineLength=8, maxLineGap=4)
+                                    np.array([]), minLineLength=10, maxLineGap=5)
     #print("Segment", line_segments)
     return line_segments
 
 #Takes line's slope and intercept and returns endpoints of the line segment.
 def make_points(frame, line):
+    height = frame.shape[0]
+    width = frame.shape[1]
+    slope, intercept = line
+    # print("slope", slope)
+    y1 = height  # bottom of the frame
+    y2 = int(y1 * 1 / 2)  # make points from middle of the frame down
+    # print("y2", y2)
+    # bound the coordinates within the frame
+    x1 = max(-width, min(2 * width, int((y1 - intercept) / slope)))
+    x2 = max(-width, min(2 * width, int((y2 - intercept) / slope)))
+    print([x1, y1, x2, y2])
+    return [[x1, y1, x2, y2]]
+
+#Takes line's slope and intercept and returns endpoints of the line segment.
+def make_points2(frame, line):
     height, width, _ = frame.shape
     slope, intercept = line
     y1 = height  # bottom of the frame
@@ -23,6 +38,31 @@ def make_points(frame, line):
     x1 = max(-width, min(2 * width, int((y1 - intercept) / slope)))
     x2 = max(-width, min(2 * width, int((y2 - intercept) / slope)))
     return [[x1, y1, x2, y2]]
+
+def singlelineDetect(frame, line_segments):
+    lane_lines = []
+    if line_segments is None:
+        print("No line_segments detected")
+        return lane_lines
+
+    height, width = frame.shape
+    combinedFit = []
+    for line_segment in line_segments:
+        for x1, y1, x2, y2 in line_segment:
+            #print("We have a line segment")
+            if x1 == x2:
+                #print('skipping vertical line segment (slope=inf): %s' % line_segment)
+                continue
+            fit = np.polyfit((x1, x2), (y1, y2), 1)
+            slope = fit[0]
+            intercept = fit[1]
+            combinedFit.append((slope, intercept))
+    fitAverage = np.average(combinedFit, axis=0)
+    #print(fitAverage)
+    #print(combinedFit)
+    if len(combinedFit) > 0:
+        lane_lines.append(make_points(frame, fitAverage))
+    return lane_lines    
 
 #This could be simplified by considering the yellow and blue components separately.
 def average_slope_intercept(frame, line_segments):
@@ -46,6 +86,7 @@ def average_slope_intercept(frame, line_segments):
 
     for line_segment in line_segments:
         for x1, y1, x2, y2 in line_segment:
+            #print("We have a line segment")
             if x1 == x2:
                 #print('skipping vertical line segment (slope=inf): %s' % line_segment)
                 continue
@@ -60,20 +101,24 @@ def average_slope_intercept(frame, line_segments):
                     right_fit.append((slope, intercept))
 
     left_fit_average = np.average(left_fit, axis=0)
+    # print("left_fit_average", left_fit_average)
     if len(left_fit) > 0:
-        lane_lines.append(make_points(frame, left_fit_average))
+        #print("points", make_points2(frame, left_fit_average))
+        lane_lines.append(make_points2(frame, left_fit_average))
 
     right_fit_average = np.average(right_fit, axis=0)
     if len(right_fit) > 0:
         lane_lines.append(make_points(frame, right_fit_average))
-      
+    return lane_lines  
 
 def display_lines(frame, lines, line_color=(0, 255, 0), line_width=2):
-    print(lines)
+    #print(lines)
     line_image = np.zeros_like(frame)
     if lines is not None:
         for line in lines:
+            print("line", line)
             for x1, y1, x2, y2 in line:
                 cv.line(line_image, (x1, y1), (x2, y2), line_color, line_width)
     line_image = cv.addWeighted(frame, 0.8, line_image, 1, 1)
     return line_image
+

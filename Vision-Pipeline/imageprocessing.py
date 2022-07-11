@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+import constants
 
 #Some methods adapted from https://towardsdatascience.com/deeppicar-part-4-lane-following-via-opencv-737dd9e47c96
 
@@ -14,9 +15,28 @@ def thresholdImage(frameBGR, lowH, lowS, lowV, highH, highS, highV) :
 def openImage(frame):
     return cv.morphologyEx(frame, cv.MORPH_OPEN, kernel)
 
+def region_of_interestMask(frame):
+    height = frame.shape[0] 
+    width = frame.shape[1]
+    maskinit = np.zeros_like(frame)
+     # only focus bottom half of the screen
+    blank = np.zeros(frame.shape[:2], dtype='uint8')
+    cv.imshow('Blank image', blank)
+
+    # mask = cv.circle(blank, (frame.shape[1]//2, frame.shape[0]//2), 200, 255, -1)
+    #Bottom half of the image
+    mask = cv.rectangle(blank, (0, height//2), (width, height-height//8), 255, thickness=-1)  
+    cv.imshow('Mask', mask)
+
+    masked = cv.bitwise_and(frame, frame, mask=mask)
+    #cv.imshow("Masked", masked)
+    return masked
+
 #Crops image to only consider bottom half of screen
 def region_of_interest(edges):
-    height, width = edges.shape
+    height = edges.shape[0] 
+    width = edges.shape[1]
+ 
     mask = np.zeros_like(edges)
 
     # only focus bottom half of the screen
