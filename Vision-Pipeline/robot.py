@@ -24,13 +24,13 @@ blue_HH = 110
 blue_HS = 198
 blue_HV = 255
 
-cropamount = 3 #consider 2 thirds of screen
+cropamount = 2.4 #consider 2 thirds of screen
 
 speed = 92
 singleLineOffset = 150
 maximumAngleChange = 15 #TODO: See if remove
 
-RUNTIME = 5 #RUNTIME in seconds
+RUNTIME = 100 #RUNTIME in seconds
 
 #Global non-constant variables
 def create_global_variables():
@@ -61,7 +61,7 @@ def region_of_interestMask(frame):
 
     # mask = cv.circle(blank, (frame.shape[1]//2, frame.shape[0]//2), 200, 255, -1)
     #Bottom half of the image
-    mask = cv.rectangle(blank, (0, height//2), (width, height-height//8), 255, thickness=-1)  
+    mask = cv.rectangle(blank, (0, int(height - height//cropamount)), (width, int(height-height//10)), 255, thickness=-1)  
     cv.imshow('Mask', mask)
 
     masked = cv.bitwise_and(frame, frame, mask=mask)
