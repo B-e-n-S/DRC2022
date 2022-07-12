@@ -18,8 +18,8 @@ blue_HV = 255
 cropamount = 3 #consider 2 thirds of screen
 
 speed = 92
-singleLineOffset = 40
-
+singleLineOffset = 150
+maximumAngleChange = 15 #TODO: See if remove
 
 #Global non-constant variables
 def create_global_variables():

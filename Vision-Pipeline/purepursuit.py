@@ -11,7 +11,7 @@ ylength = distanceToHorizontalPoint + lengthBetweenAxles
 #Hence can calculate the angle.
 
 def purePursuitController(targetPoint):
-    if (targetPoint[1] != 167): 
+    if (targetPoint[1] != 159): 
         print ("Cropping of vision must have changed. Need to remeasure")
     offsetMetres =  targetPoint[0] * metersPerPixelHorizontalAtTargetPoint
     alpha = math.atan(offsetMetres / ylength)

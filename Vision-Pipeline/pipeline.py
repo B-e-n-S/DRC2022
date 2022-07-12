@@ -11,6 +11,7 @@ import math
 import numpy as np
 import purepursuit
 from constants import *
+import constants
 
 blueisLeft = True
 
@@ -57,56 +58,32 @@ def individualLaneDetection(frame, original):
 
         return laneLine
 
-##TODO: Check if this offset is from the top and problematic        
+##TODO: Check if this offset is from the top and problematic 
+# The lfe       
 def getTargetPoint(lines, width, height):
     _, _, left_x2, _ = lines[0][0]
     _, _, right_x2, _ = lines[1][0]
     mid = int(width / 2)
     x_offset = int((left_x2 + right_x2) / 2 - mid)
-    y_offset = int(height - height / cropamount)
+    y_offset = int(height / cropamount)
     return [x_offset, y_offset]
 
 def getTargetPointLeft(left, width, height):
-    left_x2 = left[2] 
+    left_x2 = left[0][0][2] 
     mid = int(width / 2)
     x_offset = int(left_x2 + singleLineOffset - mid)
-    y_offset = int(height - height / cropamount)
+    y_offset = int(height / cropamount)
     return [x_offset, y_offset]
 
 def getTargetPointRight(right, width, height):
-    right_x2 = right[2] 
+   
+    right_x2 = right[0][0][2] 
     mid = int(width / 2)
     x_offset = int(right_x2 - singleLineOffset - mid)
-    y_offset = int(height - height / cropamount)
-    return [x_offset, y_offset]
-
-def convertToDrive(targetPoint, combined, undistorted, width, height):
-    laneLinesImage = lanedetection.display_lines(undistorted, combined)
-    delta = purepursuit.purePursuitController(targetPoint)
-    deltaDegrees = math.degrees(delta)
-    #Stabilise delta value:
-    stabilisedDelta = np.clip(delta, prevDelta-8, prevDelta+8 )
-    
-    cv.line(laneLinesImage, (int(width//2), int(height)), (int(targetPoint[0] + width/2), int(targetPoint[1])), (0, 0, 255), thickness = 3)
-    cv.imshow("LaneLines", laneLinesImage)
-    return (speed, delta)
-  
+    y_offset = int(height / cropamount)
+    return [x_offset, y_offset]  
 
 #Works out a target point from both lane lines and calculates a purePursuit value from this.
-def bothLaneMode(undistorted, left, right, width, height):
-    combined = left + right
-    # print("combined", combined)
-    targetPoint = None
-    if (len(combined) > 1):
-        targetPoint = getTargetPoint(combined, width, height)
-    if (targetPoint is not None):
-        convertToDrive(targetPoint, combined, undistorted, width, height)        
-    return (None, None)
-
-def leftLaneOnly(undistorted, left, width, height):
-    targetPoint = getTargetPointLeft(left,width, height)
-    convertToDrive(targetPoint, left, undistorted, width, height) #Will break things
-
 def separatedPipeline(frame): 
     undistorted = cameracorrection.undistort(frame)
     cropped = imageprocessing.region_of_interestMask(undistorted)
@@ -122,15 +99,34 @@ def separatedPipeline(frame):
     
     left = blue #Adjust assignment here if this is differen
     right = yellow
+    # print("left", left)
+    # print("right", right)
+    combined = left + right
+    targetPoint = [0, 0]
+    ##Fix this logic
+    print(len(left), len(right))
+    if (len(left) > 0 and len(right) > 0):
+        print("actually doing")
+        targetPoint = getTargetPoint(combined, width, height)
     
-    if (len(left) > 0 & len(right) > 0):
-        return bothLaneMode(undistorted, left, right,width, height)
+    elif (len(left)> 0):
+        print("doing lef")
+        targetPoint = getTargetPointLeft(left, width, height)
+
+    elif (len(right) > 0):
+        print("doing right")
+        targetPoint = getTargetPointRight(right, width, height)
+        print("targetPoint", targetPoint)
+
+    laneLinesImage = lanedetection.display_lines(undistorted, combined)
+    delta = purepursuit.purePursuitController(targetPoint)
+    deltaDegrees = math.degrees(delta)
+    #Stabilise delta value:
+    stabilisedDelta = np.clip(delta, constants.prevDelta-8, constants.prevDelta+8 )
     
-    else if (len(left)> 0):
-        return leftLaneOnly(undistorted, left, width, height)
-    
-    else:
-        return (0, 0)
+    cv.line(laneLinesImage, (int(width//2), int(height)), (int(targetPoint[0] + width/2), int(targetPoint[1])), (0, 0, 255), thickness = 3)
+    cv.imshow("LaneLines", laneLinesImage) 
+
 
    #Check if there is a blue and yellow line -> do normal algorithm
    #Else, check if there is just a blue lane -> run logic on blue.
@@ -173,6 +169,8 @@ def main():
     video = cv.VideoCapture(1)
     if(video.isOpened() == False):
         print("Error reading file")
+
+    create_global_variables()
 
     while (True):
         ret, frame = video.read()
