@@ -10,19 +10,26 @@ import time
 
 #ConstantsFile
 
-yellow_LH = 25
-yellow_LS = 45
-yellow_LV = 100 #97
-yellow_HH = 35
-yellow_HS = 244
-yellow_HV = 255
+YELLOW_LS = 45
+YELLOW_LH = 25
+YELLOW_LV = 100 #97
+YELLOW_HH = 35
+YELLOW_HS = 244
+YELLOW_HV = 255
 
-blue_LS = 26
-blue_LV = 50
-blue_LH = 70
-blue_HH = 110
-blue_HS = 198
-blue_HV = 255
+BLUE_LV = 50
+BLUE_LH = 70
+BLUE_HH = 110
+BLUE_LS = 26
+BLUE_HS = 198
+BLUE_HV = 255
+
+GREEN_LV = 120
+GREEN_LH = 31
+GREEN_HH = 40
+GREEN_LS = 31
+GREEN_HS = 244
+GREEN_HV = 255
 
 cropamount = 2.4 #consider 2 thirds of screen
 
@@ -310,8 +317,8 @@ def separatedPipeline(frame):
     undistorted = undistort(frame)
     cropped = region_of_interestMask(undistorted)
     cv.imshow("cropped", cropped)
-    thresholdedYellow = thresholdImage(cropped, yellow_LH, yellow_LS, yellow_LV, yellow_HH, yellow_HS, yellow_HV)
-    thresholdedBlue = thresholdImage(cropped, blue_LH, blue_LS, blue_LV, blue_HH, blue_HS, blue_HV)
+    thresholdedYellow = thresholdImage(cropped, YELLOW_LH, YELLOW_LS, YELLOW_LV, YELLOW_HH, YELLOW_HS, YELLOW_HV)
+    thresholdedBlue = thresholdImage(cropped, BLUE_LH, BLUE_LS, BLUE_LV, BLUE_HH, BLUE_HS, BLUE_HV)
     cv.imshow("ThresholdedYellow", thresholdedYellow)
     yellow = individualLaneDetection(thresholdedYellow, undistorted)
     # print("yellow", yellow)
