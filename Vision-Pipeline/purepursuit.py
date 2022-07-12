@@ -2,8 +2,8 @@ import numpy as np
 import math
 
 distanceToHorizontalPoint = 0.4 # the 167pixels matches wih this value in metres
-lengthBetweenAxles = 0.3 #Change to measured value in meteres
-metersPerPixelHorizontalAtTargetPoint = 0.001 #Num meters per pixel along the x axis at the target point. Todo measure
+lengthBetweenAxles = 0.36 #Change to measured value in meteres
+metersPerPixelHorizontalAtTargetPoint = 0.002 #Num meters per pixel along the x axis at the target point. Todo measure
 ylength = distanceToHorizontalPoint + lengthBetweenAxles
 
 #Forumla: Basially need to use back axle. So for fixed angle know distance to front axle. 

@@ -28,12 +28,22 @@ cropamount = 2.4 #consider 2 thirds of screen
 
 speed = 92
 singleLineOffset = 150
-maximumAngleChange = 15 #TODO: See if remove
-
+maximumAngleChange = 10 #TODO: See if remove
+distanceToHorizontalPoint = 0.40 # the 167pixels matches wih this value in metres
+lengthBetweenAxles = 0.36 #Change to measured value in meteres
+metersPerPixelHorizontalAtTargetPoint = 0.002 #Num meters per pixel along the x axis at the target point. Todo measure
+ylength = distanceToHorizontalPoint + lengthBetweenAxles
+prevDelta = 0
 RUNTIME = 100 #RUNTIME in seconds
+
+# prevDelta = {"prevDelta" : 25}
+
+
+
 
 #Global non-constant variables
 def create_global_variables():
+    meme = None
     global prevDelta# must declare it to be a global first
     # modifications are thus reflected on the module's global scope
     prevDelta = 0
@@ -277,27 +287,26 @@ def getTargetPointRight(right, width, height):
     return [x_offset, y_offset]  
 
 ##PURE-PURSUIT FILE:
-distanceToHorizontalPoint = 0.4 # the 167pixels matches wih this value in metres
-lengthBetweenAxles = 0.3 #Change to measured value in meteres
-metersPerPixelHorizontalAtTargetPoint = 0.001 #Num meters per pixel along the x axis at the target point. Todo measure
-ylength = distanceToHorizontalPoint + lengthBetweenAxles
+
 
 #Forumla: Basially need to use back axle. So for fixed angle know distance to front axle. 
 #Know distance to pixel conversion on floor.
 #Hence can calculate the angle.
 
 def purePursuitController(targetPoint):
+    print("TargetPoint1", targetPoint[1])
     if (targetPoint[1] != 167): 
         print ("Cropping of vision must have changed. Need to remeasure")
     offsetMetres =  targetPoint[0] * metersPerPixelHorizontalAtTargetPoint
     alpha = math.atan(offsetMetres / ylength)
-    print("alpha", alpha)
+    #print("alpha", alpha)
     delta = np.arctan(2 * lengthBetweenAxles * math.sin(alpha)/ distanceToHorizontalPoint)
     return delta
 
 
 #Works out a target point from both lane lines and calculates a purePursuit value from this.
 def separatedPipeline(frame): 
+    global prevDelta
     undistorted = undistort(frame)
     cropped = region_of_interestMask(undistorted)
     cv.imshow("cropped", cropped)
@@ -328,8 +337,12 @@ def separatedPipeline(frame):
     delta = purePursuitController(targetPoint)
     deltaDegrees = math.degrees(delta)
     #Stabilise delta value:
-    stabilisedDelta = np.clip(delta, prevDelta - maximumAngleChange, prevDelta + maximumAngleChange)
-    
+    print("prevDelta", prevDelta)
+    stabilisedDelta = np.clip(deltaDegrees, prevDelta - maximumAngleChange, prevDelta + maximumAngleChange)
+    print("prevDelta", prevDelta)
+    prevDelta = stabilisedDelta
+    print("prevDelta updated", prevDelta)
+
     cv.line(laneLinesImage, (int(width//2), int(height)), (int(targetPoint[0] + width/2), int(targetPoint[1])), (0, 0, 255), thickness = 3)
     cv.imshow("LaneLines", laneLinesImage) 
     return (speed, stabilisedDelta)
@@ -349,7 +362,8 @@ def main():
         if ret == True:
             #singlePipeline(frame)
             speed, angle = separatedPipeline(frame)
-            
+            print("angle", angle)
+
             if (time.time() - startTime > RUNTIME):
                 print("Time Expired")
                 break
