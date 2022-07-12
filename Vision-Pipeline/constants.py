@@ -1,3 +1,6 @@
+from cgi import test
+
+
 yellow_LH = 25
 yellow_LS = 45
 yellow_LV = 100 #97
@@ -13,3 +16,14 @@ blue_HS = 198
 blue_HV = 255
 
 cropamount = 3 #consider 2 thirds of screen
+
+speed = 92
+singleLineOffset = 40
+
+
+#Global non-constant variables
+def create_global_variables():
+    global prevDelta# must declare it to be a global first
+    # modifications are thus reflected on the module's global scope
+    prevDelta = 0
+

@@ -24,7 +24,7 @@ def make_points(frame, line):
     # bound the coordinates within the frame
     x1 = max(-width, min(2 * width, int((y1 - intercept) / slope)))
     x2 = max(-width, min(2 * width, int((y2 - intercept) / slope)))
-    print([x1, y1, x2, y2])
+    # print([x1, y1, x2, y2])
     return [[x1, y1, x2, y2]]
 
 #Takes line's slope and intercept and returns endpoints of the line segment.
@@ -116,7 +116,7 @@ def display_lines(frame, lines, line_color=(0, 255, 0), line_width=2):
     line_image = np.zeros_like(frame)
     if lines is not None:
         for line in lines:
-            print("line", line)
+            # print("line", line)
             for x1, y1, x2, y2 in line:
                 cv.line(line_image, (x1, y1), (x2, y2), line_color, line_width)
     line_image = cv.addWeighted(frame, 0.8, line_image, 1, 1)

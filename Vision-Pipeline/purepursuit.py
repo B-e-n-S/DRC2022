@@ -1,10 +1,20 @@
 import numpy as np
 import math
 
-lookaheadDistance = 0.4
-lengthBetweenAxles = 0.3
+distanceToHorizontalPoint = 0.4 # the 167pixels matches wih this value in metres
+lengthBetweenAxles = 0.3 #Change to measured value in meteres
+metersPerPixelHorizontalAtTargetPoint = 0.001 #Num meters per pixel along the x axis at the target point. Todo measure
+ylength = distanceToHorizontalPoint + lengthBetweenAxles
 
-def purePursuitController(targetPoint, lookAheadDistance):
-    alpha = math.atan(targetPoint[0] / targetPoint[1])
-    delta = np.arctan(2 * lengthBetweenAxles * math.sin(alpha)/ lookAheadDistance)
+#Forumla: Basially need to use back axle. So for fixed angle know distance to front axle. 
+#Know distance to pixel conversion on floor.
+#Hence can calculate the angle.
+
+def purePursuitController(targetPoint):
+    if (targetPoint[1] != 167): 
+        print ("Cropping of vision must have changed. Need to remeasure")
+    offsetMetres =  targetPoint[0] * metersPerPixelHorizontalAtTargetPoint
+    alpha = math.atan(offsetMetres / ylength)
+    print("alpha", alpha)
+    delta = np.arctan(2 * lengthBetweenAxles * math.sin(alpha)/ distanceToHorizontalPoint)
     return delta
