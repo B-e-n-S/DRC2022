@@ -30,6 +30,8 @@ speed = 92
 singleLineOffset = 150
 maximumAngleChange = 15 #TODO: See if remove
 
+RUNTIME = 5 #RUNTIME in seconds
+
 #Global non-constant variables
 def create_global_variables():
     global prevDelta# must declare it to be a global first
@@ -326,7 +328,7 @@ def separatedPipeline(frame):
     delta = purePursuitController(targetPoint)
     deltaDegrees = math.degrees(delta)
     #Stabilise delta value:
-    stabilisedDelta = np.clip(delta, prevDelta-8, prevDelta+8 )
+    stabilisedDelta = np.clip(delta, prevDelta - maximumAngleChange, prevDelta + maximumAngleChange)
     
     cv.line(laneLinesImage, (int(width//2), int(height)), (int(targetPoint[0] + width/2), int(targetPoint[1])), (0, 0, 255), thickness = 3)
     cv.imshow("LaneLines", laneLinesImage) 
@@ -348,7 +350,7 @@ def main():
             #singlePipeline(frame)
             speed, angle = separatedPipeline(frame)
             
-            if (time.time() - startTime > 100):
+            if (time.time() - startTime > RUNTIME):
                 print("Time Expired")
                 break
 
@@ -360,6 +362,7 @@ def main():
 
         else:
             break
+    ##SET THE SPEED TO 0 at the end
     speed = 0
     
     video.release()
