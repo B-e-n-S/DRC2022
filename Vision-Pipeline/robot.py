@@ -1,3 +1,4 @@
+from turtle import end_fill
 import cv2 as cv
 from cv2 import threshold
 from cv2 import bitwise_and
@@ -43,6 +44,10 @@ ylength = distanceToHorizontalPoint + lengthBetweenAxles
 prevDelta = 0
 RUNTIME = 100 #RUNTIME in seconds
 
+##TODO: Pick the wait to start checking for the green tape time
+timeTillCheckForFinishLine = 30
+
+
 # prevDelta = {"prevDelta" : 25}
 
 
@@ -74,12 +79,12 @@ def region_of_interestMask(frame):
     maskinit = np.zeros_like(frame)
      # only focus bottom half of the screen
     blank = np.zeros(frame.shape[:2], dtype='uint8')
-    cv.imshow('Blank image', blank)
+    # cv.imshow('Blank image', blank)
 
     # mask = cv.circle(blank, (frame.shape[1]//2, frame.shape[0]//2), 200, 255, -1)
     #Bottom half of the image
     mask = cv.rectangle(blank, (0, int(height - height//cropamount)), (width, int(height-height//10)), 255, thickness=-1)  
-    cv.imshow('Mask', mask)
+    # cv.imshow('Mask', mask)
 
     masked = cv.bitwise_and(frame, frame, mask=mask)
     #cv.imshow("Masked", masked)
@@ -132,14 +137,19 @@ def undistort(image) -> any:
 # Uses Hough algorithm to detect line segments. TODO: Needs tuning
 # Explanation: https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_houghlines/py_houghlines.html
 def detectLineSegments(frame):
+    return detectLineSegmentsDetailed(frame, 10, 5)
+
+def detectLineSegmentsDetailed(frame, minLineLength, maxLineGap):   
     # tuning min_threshold, minLineLength, maxLineGap is a trial and error process by hand
     rho = 1 #distance precision in pixel, i.e. 1 pixel
     angle = np.pi / 180 # angular precision in radian, i.e. 1 degree
     min_threshold = 10  # minimal of votes
     line_segments = cv.HoughLinesP(frame, rho, angle, min_threshold, 
-                                    np.array([]), minLineLength=10, maxLineGap=5)
+                                    np.array([]), minLineLength, maxLineGap)
     #print("Segment", line_segments)
     return line_segments
+
+
 
 #Takes line's slope and intercept and returns endpoints of the line segment.
 def make_points(frame, line):
@@ -268,7 +278,23 @@ def individualLaneDetection(frame, original):
         # cv.imshow("Go bro", display)
 
         return laneLine
-    
+
+def individualLaneDetectionGreen(frame, original, minLineLength, maxLineGap):
+        open = openImage(frame)
+        # edges = cv.Canny(frame, 200, 400)
+        test = cv.Canny(open, 200, 400)
+        # cv.imshow("Canny", edges)
+        # cv.imshow("Open", test)
+   
+        #Detect lane section
+        lineSegments = detectLineSegmentsDetailed(frame, minLineLength, maxLineGap)
+        #cv.imshow("bruh", lanedetection.display_lines(original, lineSegments))
+        laneLine = singlelineDetect(frame, lineSegments)
+        display = display_lines(original, laneLine)
+        cv.imshow("Go bro", display)
+
+        return laneLine
+
 ##TODO: Check if this offset is from the top and problematic 
 # The lfe       
 def getTargetPoint(lines, width, height):
@@ -310,6 +336,16 @@ def purePursuitController(targetPoint):
     delta = np.arctan(2 * lengthBetweenAxles * math.sin(alpha)/ distanceToHorizontalPoint)
     return delta
 
+##Green Figure out what to do
+#Ignore the green line for the first 20 seconds 
+
+#Return true for green
+def greenCheck(cropped, undistorted):
+    thresholdedGreen = thresholdImage(cropped, GREEN_LH, GREEN_LS, GREEN_LV, GREEN_HH, GREEN_HS, GREEN_HV)
+    green = individualLaneDetectionGreen(thresholdedGreen, undistorted, 40, 4)
+
+    ##TODO finish
+
 
 #Works out a target point from both lane lines and calculates a purePursuit value from this.
 def separatedPipeline(frame): 
@@ -319,12 +355,15 @@ def separatedPipeline(frame):
     cv.imshow("cropped", cropped)
     thresholdedYellow = thresholdImage(cropped, YELLOW_LH, YELLOW_LS, YELLOW_LV, YELLOW_HH, YELLOW_HS, YELLOW_HV)
     thresholdedBlue = thresholdImage(cropped, BLUE_LH, BLUE_LS, BLUE_LV, BLUE_HH, BLUE_HS, BLUE_HV)
-    cv.imshow("ThresholdedYellow", thresholdedYellow)
+
+    
+  
     yellow = individualLaneDetection(thresholdedYellow, undistorted)
     # print("yellow", yellow)
     width = undistorted.shape[1]
     height =  undistorted.shape[0]
     blue = individualLaneDetection(thresholdedBlue, undistorted)
+    
     
     left = blue #Adjust assignment here if this is differen
     right = yellow
@@ -364,6 +403,7 @@ def main():
     startTime = time.time()
 
     while (True):
+        beginLoop = time.time()
         ret, frame = video.read()
 
         if ret == True:
@@ -383,6 +423,9 @@ def main():
 
         else:
             break
+        loopTime = time.time() - beginLoop
+        print("loopTime", loopTime)
+
     ##SET THE SPEED TO 0 at the end
     speed = 0
     
