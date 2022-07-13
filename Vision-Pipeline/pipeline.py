@@ -12,6 +12,7 @@ import numpy as np
 import purepursuit
 from constants import *
 import constants
+from VideoGet import VideoGet
 
 blueisLeft = True
 
@@ -163,34 +164,36 @@ def separatedPipeline(frame):
 
 
 
-
-
 def main():
-    video = cv.VideoCapture(1)
-    if(video.isOpened() == False):
-        print("Error reading file")
+    
+    videoGetter = VideoGet(1).start()
+
+    
+    # video = cv.VideoCapture(1)
+    # if(video.isOpened() == False):
+    #     print("Error reading file")
 
     create_global_variables()
 
     while (True):
-        ret, frame = video.read()
-
-        if ret == True:
+        # ret, frame = video.read()
+        frame = videoGetter.frame
+        # if ret == True:
             #singlePipeline(frame)
-            separatedPipeline(frame)
+        separatedPipeline(frame)
             
             
 
-            k = cv.waitKey(1)
-            if k%256 == 27:
-                # ESC pressed
-                print("Escape hit, closing...")
-                break
-
-        else:
+        k = cv.waitKey(1)
+        if k%256 == 27:
+            # ESC pressed
+            print("Escape hit, closing...")
+            
             break
-
-    video.release()
+        # else:
+        #     break
+    videoGetter.stop()
+    # video.release()
     cv.destroyAllWindows()
 
 if __name__ == "__main__":

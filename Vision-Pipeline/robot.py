@@ -8,6 +8,8 @@ from matplotlib import lines
 import math
 import numpy as np
 import time
+#from CountsPerSec import CountsPerSec
+from threading import Thread
 
 #ConstantsFile
 
@@ -45,12 +47,34 @@ prevDelta = 0
 RUNTIME = 100 #RUNTIME in seconds
 
 ##TODO: Pick the wait to start checking for the green tape time
-timeTillCheckForFinishLine = 30
-
+timeTillCheckForFinishLine = 5
+greenCounter = 0
 
 # prevDelta = {"prevDelta" : 25}
 
+class VideoGet:
+    """
+        Class that continuously gets frames from a VideoCapture object
+        with a dedicated thread.
+    """
+    def __init__(self, src=0):
+        self.stream = cv.VideoCapture(src)
+        (self.grabbed, self.frame) = self.stream.read()
+        self.stopped = False
 
+    def start(self):
+        Thread(target=self.get, args=()).start()
+        return self
+
+    def get(self):
+        while not self.stopped:
+            if not self.grabbed:
+                self.stop()
+            else:
+                (self.grabbed, self.frame) = self.stream.read()
+
+    def stop(self):
+        self.stopped = True                    
 
 
 #Global non-constant variables
@@ -59,6 +83,11 @@ def create_global_variables():
     global prevDelta# must declare it to be a global first
     # modifications are thus reflected on the module's global scope
     prevDelta = 0
+    global greenCounter
+    greenCounter = 0
+
+
+
 
 ##ImageProcessing File
 
@@ -340,17 +369,24 @@ def purePursuitController(targetPoint):
 #Ignore the green line for the first 20 seconds 
 
 #Return true for green
-def greenCheck(cropped, undistorted):
-    thresholdedGreen = thresholdImage(cropped, GREEN_LH, GREEN_LS, GREEN_LV, GREEN_HH, GREEN_HS, GREEN_HV)
+def greenCheck(undistorted):
+    global greenCounter
+    thresholdedGreen = thresholdImage(undistorted, GREEN_LH, GREEN_LS, GREEN_LV, GREEN_HH, GREEN_HS, GREEN_HV)
     green = individualLaneDetectionGreen(thresholdedGreen, undistorted, 40, 4)
+    if len(green > 0):
+        greenCounter = greenCounter + 1
+    else:
+        greenCounter = 0
+
+
 
     ##TODO finish
 
 
 #Works out a target point from both lane lines and calculates a purePursuit value from this.
-def separatedPipeline(frame): 
+def separatedPipeline(undistorted): 
     global prevDelta
-    undistorted = undistort(frame)
+    
     cropped = region_of_interestMask(undistorted)
     cv.imshow("cropped", cropped)
     thresholdedYellow = thresholdImage(cropped, YELLOW_LH, YELLOW_LS, YELLOW_LV, YELLOW_HH, YELLOW_HS, YELLOW_HV)
@@ -397,39 +433,49 @@ def separatedPipeline(frame):
 
 def main():
     create_global_variables()
-    video = cv.VideoCapture(1)
-    if(video.isOpened() == False):
-        print("Error reading file")
+
+    videoGetter = VideoGet(1).start()
+    
+    # video = cv.VideoCapture(1)
+    # if(video.isOpened() == False):
+    #     print("Error reading file")
     startTime = time.time()
 
     while (True):
         beginLoop = time.time()
-        ret, frame = video.read()
+        frame = videoGetter.frame
+        undistorted = undistort(frame)
+        # ret, frame = video.read()
+        #singlePipeline(frame)
+        speed, angle = separatedPipeline(undistorted)
+        print("angle", angle)
+        
+        #Check the finish line after certain:
+        if(time.time() - startTime > timeTillCheckForFinishLine):
+            print("Go for Green")
+            greenCheck(undistorted)
+           
 
-        if ret == True:
-            #singlePipeline(frame)
-            speed, angle = separatedPipeline(frame)
-            print("angle", angle)
 
-            if (time.time() - startTime > RUNTIME):
-                print("Time Expired")
-                break
-
-            k = cv.waitKey(1)
-            if k%256 == 27:
-                # ESC pressed
-                print("Escape hit, closing...")
-                break
-
-        else:
+        if (time.time() - startTime > RUNTIME):
+            print("Time Expired")
             break
+
+        k = cv.waitKey(1)
+        if k%256 == 27:
+            # ESC pressed
+            print("Escape hit, closing...")
+            break
+        
         loopTime = time.time() - beginLoop
         print("loopTime", loopTime)
+        
+
 
     ##SET THE SPEED TO 0 at the end
     speed = 0
     
-    video.release()
+    videoGetter.stop()
     cv.destroyAllWindows()
 
 if __name__ == "__main__":
