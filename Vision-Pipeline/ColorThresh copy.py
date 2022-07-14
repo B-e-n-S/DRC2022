@@ -6,9 +6,9 @@ import imageprocessing
 
 max_value = 255
 max_value_H = 360//2
+low_S = 40
 low_H = 25
-low_S = 45
-low_V = 97
+low_V = 181
 high_H = 35
 high_S = 244
 high_V = 255

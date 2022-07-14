@@ -12,25 +12,25 @@ import time
 from threading import Thread
 
 #ConstantsFile
+YELLOW_LH = 25 #25
+YELLOW_LS = 40 #45
+YELLOW_LV = 181 #100
+YELLOW_HH = 35 #35
+YELLOW_HS = 244 #181
+YELLOW_HV = 255 #255
 
-YELLOW_LS = 45
-YELLOW_LH = 25
-YELLOW_LV = 100 #97
-YELLOW_HH = 35
-YELLOW_HS = 244
-YELLOW_HV = 255
 
-BLUE_LV = 50
-BLUE_LH = 70
-BLUE_HH = 110
-BLUE_LS = 26
-BLUE_HS = 198
-BLUE_HV = 255
+BLUE_LH = 103 #70
+BLUE_LS = 70 #26
+BLUE_LV = 50 #50
+BLUE_HH = 110 #110
+BLUE_HS = 250 #198 
+BLUE_HV = 255 #255
 
-GREEN_LV = 120
 GREEN_LH = 31
-GREEN_HH = 40
 GREEN_LS = 31
+GREEN_LV = 120
+GREEN_HH = 40
 GREEN_HS = 244
 GREEN_HV = 255
 
@@ -44,7 +44,7 @@ lengthBetweenAxles = 0.36 #Change to measured value in meteres
 metersPerPixelHorizontalAtTargetPoint = 0.002 #Num meters per pixel along the x axis at the target point. Todo measure
 ylength = distanceToHorizontalPoint + lengthBetweenAxles
 prevDelta = 0
-RUNTIME = 100 #RUNTIME in seconds
+RUNTIME = 1000 #RUNTIME in seconds
 
 ##TODO: Pick the wait to start checking for the green tape time
 timeTillCheckForFinishLine = 5
@@ -373,7 +373,7 @@ def greenCheck(undistorted):
     global greenCounter
     thresholdedGreen = thresholdImage(undistorted, GREEN_LH, GREEN_LS, GREEN_LV, GREEN_HH, GREEN_HS, GREEN_HV)
     green = individualLaneDetectionGreen(thresholdedGreen, undistorted, 40, 4)
-    if len(green > 0):
+    if (len(green) > 0):
         greenCounter = greenCounter + 1
     else:
         greenCounter = 0
