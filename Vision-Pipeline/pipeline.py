@@ -21,9 +21,9 @@ blueisLeft = True
 def singlePipeline(frame):
     #Pipeline Process:
         undistorted = cameracorrection.undistort(frame)
-        thresholdedYellow = imageprocessing.thresholdImage(undistorted, yellow_LH, yellow_LS, yellow_LV, yellow_HH, yellow_HS, yellow_HV)
+        thresholdedYellow = imageprocessing.thresholdImage(cropped, YELLOW_LH, YELLOW_LS, YELLOW_LV, YELLOW_HH, YELLOW_HS, YELLOW_HV)
+        thresholdedBlue = imageprocessing.thresholdImage(cropped, BLUE_LH, BLUE_LS, BLUE_LV, BLUE_HH, BLUE_HS, BLUE_HV)
         cv.imshow("ThresholdedYellow", thresholdedYellow)
-        thresholdedBlue = imageprocessing.thresholdImage(undistorted, blue_LH, blue_LS, blue_LV, blue_HH, blue_HS, blue_HV)
         thresholded = bitwise_or(thresholdedYellow, thresholdedBlue)
      
         #opened = imageprocessing.openImage(thresholded) Doesn't seem to help
@@ -38,7 +38,7 @@ def singlePipeline(frame):
         lineSegments = lanedetection.detectLineSegments(cropped)
         #print("lineSegments2", lineSegments)
         laneLines = lanedetection.average_slope_intercept(frame, lineSegments)
-        print("laneLines", laneLines)
+        #print("laneLines", laneLines)
 
         #Display Lines
         laneLinesImage = lanedetection.display_lines(undistorted, laneLines)
@@ -108,17 +108,17 @@ def separatedPipeline(frame):
     ##Fix this logic
     print(len(left), len(right))
     if (len(left) > 0 and len(right) > 0):
-        print("actually doing")
+       # print("actually doing")
         targetPoint = getTargetPoint(combined, width, height)
     
     elif (len(left)> 0):
-        print("doing lef")
+      #  print("doing lef")
         targetPoint = getTargetPointLeft(left, width, height)
 
     elif (len(right) > 0):
-        print("doing right")
+      #  print("doing right")
         targetPoint = getTargetPointRight(right, width, height)
-        print("targetPoint", targetPoint)
+      #  print("targetPoint", targetPoint)
 
     laneLinesImage = lanedetection.display_lines(undistorted, combined)
     delta = purepursuit.purePursuitController(targetPoint)
@@ -171,7 +171,7 @@ def separatedPipeline(frame):
 
 
 def main():
-    dir = "C:/Users/b3nsc/OneDrive - The University of Sydney (Students)/Documents/University/Societies/Robotics/DRC Code/TestFootage/TestfootageFullTrack.avi"
+    dir = "C:/Users/b3nsc/OneDrive - The University of Sydney (Students)/Documents/University/Societies/Robotics/DRC Code/TestFootage/AlternatingPurple.avi"
 
     # videoGetter = VideoGet(dir).start()
 

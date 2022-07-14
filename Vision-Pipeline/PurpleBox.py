@@ -28,9 +28,17 @@ def getPurpleBoundingBox(thresholded, undistorted):
         contours_poly[i] = cv.approxPolyDP(c, 3, True)
         boundRect[i] = cv.boundingRect(contours_poly[i])
         # centers[i], radius[i] = cv.minEnclosingCircle(contours_poly[i])
-    area = 0
+    biggestArea = 0
+    bigRect = []
     for rectangle in boundRect:
         area = abs((rectangle[0]-rectangle[2]) * (rectangle[1]- rectangle[3]))
+        x,y,w,h = rectangle
+        centreX = x + (w / 2)
+        if (area > biggestArea and x > 200): #magic number TODO
+            biggestArea = area
+            bigRect = rectangle
+
+
 
     drawing = np.zeros((undistorted.shape[0], undistorted.shape[1], 3), dtype=np.uint8)
     # Draw polygonal contour + bonding rects + circles
@@ -47,40 +55,49 @@ def getPurpleBoundingBox(thresholded, undistorted):
     cv.imshow('Contours', drawing)
     ##TODO do AREA CHECK and output the biggest one only.
 
-    return boundRect
+    return bigRect
 
 def chooseTapeToFollowObstacle(left, right, boundingRect):
-    print("Bounding", boundingRect)
+    #print("Bounding", boundingRect)
     if len(boundingRect) > 0:
         x,y,w,h = boundingRect
         centreX = x + (w / 2)
         centreY = y + (h / 2)
         #Check x[2]
-
+         
         
         leftdist = safeDistance
         rightdist = safeDistance
-
-        if len(left > 0):
+      
+        if (len(left) > 0):
+           # print("left", left)
+            innerLeft = left[0][0]
+            
             #Find the intercept of the horizontal line from the bounding box centre to the laneline
-            mleft = (left[3] - left[1] / left[2] - left[0])
-            leftIntercept = (centreX - left[3])/mleft + left[2]
+            
+            mleft = (  innerLeft[3] - innerLeft[1] /innerLeft[2] -innerLeft[0])
+            leftIntercept = (centreX - innerLeft[3])/mleft + innerLeft[2]
 
-            xdist = abs(centreX - leftIntercept)
+            leftdist = abs(centreX - leftIntercept)
 
-        if len(right > 0):
+        if (len(right) > 0):
+            # print("right", right)
+            # print("rightin", right[0])
             #Find the intercept of the horizontal line from the bounding box centre to the laneline
-            mright = (right[3] - right[1] / right[2] - right[0])
-            rightIntercept = (centreX - right[3])/mright + right[2]
+            innerRight = right[0][0]
+            mright = (innerRight[3] - innerRight[1] / innerRight[2] - innerRight[0])
+            rightIntercept = (centreX - innerRight[3])/mright + innerRight[2]
 
-            ydist = abs(centreX - rightIntercept)
-
-        if (xdist > ydist):
-            print("Go x side", xdist)
-            return [True, xdist]
+            rightdist = abs(centreX - rightIntercept)
         else:
-            print("Go y side", ydist)
-            return [False, ydist]    
+            print("yo")
+
+        if (leftdist > rightdist):
+            print("Go left side", leftdist, rightdist)
+            return [True, leftdist,]
+        else:
+            print("Go right side", leftdist, rightdist)
+            return [False, rightdist]    
 
     print("No bounding")
 #Target Process:
