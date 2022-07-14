@@ -13,6 +13,7 @@ import purepursuit
 from constants import *
 import constants
 from VideoGet import VideoGet
+import PurpleBox
 
 blueisLeft = True
 
@@ -89,8 +90,8 @@ def separatedPipeline(frame):
     undistorted = cameracorrection.undistort(frame)
     cropped = imageprocessing.region_of_interestMask(undistorted)
     cv.imshow("cropped", cropped)
-    thresholdedYellow = imageprocessing.thresholdImage(cropped, yellow_LH, yellow_LS, yellow_LV, yellow_HH, yellow_HS, yellow_HV)
-    thresholdedBlue = imageprocessing.thresholdImage(cropped, blue_LH, blue_LS, blue_LV, blue_HH, blue_HS, blue_HV)
+    thresholdedYellow = imageprocessing.thresholdImage(cropped, YELLOW_LH, YELLOW_LS, YELLOW_LV, YELLOW_HH, YELLOW_HS, YELLOW_HV)
+    thresholdedBlue = imageprocessing.thresholdImage(cropped, BLUE_LH, BLUE_LS, BLUE_LV, BLUE_HH, BLUE_HS, BLUE_HV)
     cv.imshow("ThresholdedYellow", thresholdedYellow)
     yellow = individualLaneDetection(thresholdedYellow, undistorted)
     # print("yellow", yellow)
@@ -125,8 +126,12 @@ def separatedPipeline(frame):
     #Stabilise delta value:
     stabilisedDelta = np.clip(delta, constants.prevDelta-8, constants.prevDelta+8 )
     
+    thresholdPurple = imageprocessing.thresholdImage(undistorted,  PURPLE_LH, PURPLE_LS, PURPLE_LV, PURPLE_HH, PURPLE_HS, PURPLE_HV)
+    PurpleBox.getPurpleBoundingBox(thresholdPurple, undistorted)
+
     cv.line(laneLinesImage, (int(width//2), int(height)), (int(targetPoint[0] + width/2), int(targetPoint[1])), (0, 0, 255), thickness = 3)
     cv.imshow("LaneLines", laneLinesImage) 
+
 
 
    #Check if there is a blue and yellow line -> do normal algorithm
