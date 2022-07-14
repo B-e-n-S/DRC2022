@@ -27,12 +27,23 @@ BLUE_HH = 110 #110
 BLUE_HS = 250 #198 
 BLUE_HV = 255 #255
 
-GREEN_LH = 31
-GREEN_LS = 31
-GREEN_LV = 120
-GREEN_HH = 40
-GREEN_HS = 244
-GREEN_HV = 255
+GREEN_LH = 34 #31
+GREEN_LS = 51 #31
+GREEN_LV = 93 #120
+GREEN_HH = 46 #40
+GREEN_HS = 255 #244
+GREEN_HV = 255 #255
+
+PURPLE_LH = 125 
+PURPLE_LS = 65 
+PURPLE_LV = 16 
+PURPLE_HH = 155 
+PURPLE_HS = 255
+PURPLE_HV = 206 
+
+BLACK_LI = 0 
+BLACK_HI = 85 
+
 
 cropamount = 2.4 #consider 2 thirds of screen
 
@@ -401,8 +412,8 @@ def separatedPipeline(undistorted):
     blue = individualLaneDetection(thresholdedBlue, undistorted)
     
     
-    left = blue #Adjust assignment here if this is differen
-    right = yellow
+    left = yellow #Adjust assignment here if this is differen
+    right = blue
     combined = left + right
     targetPoint = [0, 0]
     ##Fix this logic

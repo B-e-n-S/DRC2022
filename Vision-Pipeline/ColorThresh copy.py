@@ -6,11 +6,11 @@ import imageprocessing
 
 max_value = 255
 max_value_H = 360//2
-low_S = 40
-low_H = 25
-low_V = 181
-high_H = 35
-high_S = 244
+low_H = 34
+low_S = 51
+low_V = 93
+high_H = 46
+high_S = 255
 high_V = 255
 window_capture_name = 'Video Capture'
 window_detection_name = 'Object Detection'
