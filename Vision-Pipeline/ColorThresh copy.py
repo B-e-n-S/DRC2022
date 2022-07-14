@@ -6,12 +6,12 @@ import imageprocessing
 
 max_value = 255
 max_value_H = 360//2
-low_H = 34
-low_S = 51
-low_V = 93
-high_H = 46
+low_H = 125
+low_S = 65
+low_V = 16
+high_H = 155
 high_S = 255
-high_V = 255
+high_V = 206
 window_capture_name = 'Video Capture'
 window_detection_name = 'Object Detection'
 low_H_name = 'Low H'
@@ -67,7 +67,8 @@ parser = argparse.ArgumentParser(description='Code for Thresholding Operations u
 parser.add_argument('--camera', help='Camera divide number.', default=0, type=int)
 args = parser.parse_args()
 #cap = cv.VideoCapture(args.camera)
-cap = cv.VideoCapture(1)
+dir = "C:/Users/b3nsc/OneDrive - The University of Sydney (Students)/Documents/University/Societies/Robotics/DRC Code/TestFootage/Purple Boxes.avi"
+cap = cv.VideoCapture(dir)
 #cap = cv.VideoCapture('Images/CorrectTape.mp4')
 cv.namedWindow(window_capture_name)
 cv.namedWindow(window_detection_name)

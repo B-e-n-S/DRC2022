@@ -99,8 +99,8 @@ def separatedPipeline(frame):
     height =  undistorted.shape[0]
     blue = individualLaneDetection(thresholdedBlue, undistorted)
     
-    left = blue #Adjust assignment here if this is differen
-    right = yellow
+    left = yellow #Adjust assignment here if this is differen
+    right = blue
     # print("left", left)
     # print("right", right)
     combined = left + right
@@ -127,7 +127,8 @@ def separatedPipeline(frame):
     stabilisedDelta = np.clip(delta, constants.prevDelta-8, constants.prevDelta+8 )
     
     thresholdPurple = imageprocessing.thresholdImage(undistorted,  PURPLE_LH, PURPLE_LS, PURPLE_LV, PURPLE_HH, PURPLE_HS, PURPLE_HV)
-    PurpleBox.getPurpleBoundingBox(thresholdPurple, undistorted)
+    purpleBox = PurpleBox.getPurpleBoundingBox(thresholdPurple, undistorted)
+    PurpleBox.chooseTapeToFollowObstacle(left, right, purpleBox)
 
     cv.line(laneLinesImage, (int(width//2), int(height)), (int(targetPoint[0] + width/2), int(targetPoint[1])), (0, 0, 255), thickness = 3)
     cv.imshow("LaneLines", laneLinesImage) 
@@ -170,19 +171,20 @@ def separatedPipeline(frame):
 
 
 def main():
-    
-    videoGetter = VideoGet(1).start()
+    dir = "C:/Users/b3nsc/OneDrive - The University of Sydney (Students)/Documents/University/Societies/Robotics/DRC Code/TestFootage/TestfootageFullTrack.avi"
+
+    # videoGetter = VideoGet(dir).start()
 
     
-    # video = cv.VideoCapture(1)
-    # if(video.isOpened() == False):
-    #     print("Error reading file")
+    video = cv.VideoCapture(dir)
+    if(video.isOpened() == False):
+        print("Error reading file")
 
     create_global_variables()
 
     while (True):
-        # ret, frame = video.read()
-        frame = videoGetter.frame
+        ret, frame = video.read()
+        # frame = videoGetter.frame
         # if ret == True:
             #singlePipeline(frame)
         separatedPipeline(frame)
@@ -197,7 +199,7 @@ def main():
             break
         # else:
         #     break
-    videoGetter.stop()
+    # videoGetter.stop()
     # video.release()
     cv.destroyAllWindows()
 
