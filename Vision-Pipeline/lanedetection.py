@@ -12,6 +12,7 @@ def detectLineSegments(frame):
     #print("Segment", line_segments)
     return line_segments
 
+
 #Takes line's slope and intercept and returns endpoints of the line segment.
 def make_points(frame, line):
     height = frame.shape[0]
@@ -39,19 +40,29 @@ def make_points2(frame, line):
     x2 = max(-width, min(2 * width, int((y2 - intercept) / slope)))
     return [[x1, y1, x2, y2]]
 
-def singlelineDetect(frame, line_segments):
+def singlelineDetect(frame, line_segments, isLeft):
+  
     lane_lines = []
     if line_segments is None:
         print("No line_segments detected")
         return lane_lines
 
     height, width = frame.shape
+    boundary = 1/3
+    left_region_boundary = width * (1 - boundary)  # left lane line segment should be on left 2/3 of the screen
+    right_region_boundary = width * boundary
     combinedFit = []
     for line_segment in line_segments:
         for x1, y1, x2, y2 in line_segment:
             #print("We have a line segment")
             if x1 == x2:
                 #print('skipping vertical line segment (slope=inf): %s' % line_segment)
+                continue
+            if (isLeft and (x1 > left_region_boundary or x2 >left_region_boundary)):
+                print("Skip left")
+                continue
+            elif(isLeft != True and (x1 < right_region_boundary or x2 < right_region_boundary)):
+                print("Skip right")
                 continue
             fit = np.polyfit((x1, x2), (y1, y2), 1)
             slope = fit[0]

@@ -1,3 +1,4 @@
+from doctest import testsource
 import cv2 as cv
 from cv2 import threshold
 from cv2 import bitwise_and
@@ -25,7 +26,7 @@ def singlePipeline(frame):
         thresholdedBlue = imageprocessing.thresholdImage(cropped, BLUE_LH, BLUE_LS, BLUE_LV, BLUE_HH, BLUE_HS, BLUE_HV)
         cv.imshow("ThresholdedYellow", thresholdedYellow)
         thresholded = bitwise_or(thresholdedYellow, thresholdedBlue)
-     
+      
         #opened = imageprocessing.openImage(thresholded) Doesn't seem to help
         cv.imshow("Thresholded", thresholded)
         #cv.imshow("open", opened)
@@ -44,7 +45,7 @@ def singlePipeline(frame):
         laneLinesImage = lanedetection.display_lines(undistorted, laneLines)
         cv.imshow("lane lines", laneLinesImage)
 
-def individualLaneDetection(frame, original):
+def individualLaneDetection(frame, original, isLeft):
         open = imageprocessing.openImage(frame)
         # edges = cv.Canny(frame, 200, 400)
         test = cv.Canny(open, 200, 400)
@@ -54,7 +55,7 @@ def individualLaneDetection(frame, original):
         #Detect lane section
         lineSegments = lanedetection.detectLineSegments(test)
         #cv.imshow("bruh", lanedetection.display_lines(original, lineSegments))
-        laneLine = lanedetection.singlelineDetect(frame, lineSegments)
+        laneLine = lanedetection.singlelineDetect(frame, lineSegments, isLeft)
         #display = lanedetection.display_lines(original, laneLine)
         # cv.imshow("Go bro", display)
 
@@ -93,11 +94,11 @@ def separatedPipeline(frame):
     thresholdedYellow = imageprocessing.thresholdImage(cropped, YELLOW_LH, YELLOW_LS, YELLOW_LV, YELLOW_HH, YELLOW_HS, YELLOW_HV)
     thresholdedBlue = imageprocessing.thresholdImage(cropped, BLUE_LH, BLUE_LS, BLUE_LV, BLUE_HH, BLUE_HS, BLUE_HV)
     cv.imshow("ThresholdedYellow", thresholdedYellow)
-    yellow = individualLaneDetection(thresholdedYellow, undistorted)
+    yellow = individualLaneDetection(thresholdedYellow, undistorted, True)
     # print("yellow", yellow)
     width = undistorted.shape[1]
     height =  undistorted.shape[0]
-    blue = individualLaneDetection(thresholdedBlue, undistorted)
+    blue = individualLaneDetection(thresholdedBlue, undistorted, False)
     
     left = yellow #Adjust assignment here if this is differen
     right = blue
@@ -125,8 +126,8 @@ def separatedPipeline(frame):
     deltaDegrees = math.degrees(delta)
     #Stabilise delta value:
     stabilisedDelta = np.clip(delta, constants.prevDelta-8, constants.prevDelta+8 )
-    
-    thresholdPurple = imageprocessing.thresholdImage(undistorted,  PURPLE_LH, PURPLE_LS, PURPLE_LV, PURPLE_HH, PURPLE_HS, PURPLE_HV)
+    croppedLess = imageprocessing.region_of_interestMaskLESS(undistorted)
+    thresholdPurple = imageprocessing.thresholdImage(croppedLess,  PURPLE_LH, PURPLE_LS, PURPLE_LV, PURPLE_HH, PURPLE_HS, PURPLE_HV)
     purpleBox = PurpleBox.getPurpleBoundingBox(thresholdPurple, undistorted)
     PurpleBox.chooseTapeToFollowObstacle(left, right, purpleBox)
 
@@ -171,7 +172,7 @@ def separatedPipeline(frame):
 
 
 def main():
-    dir = "C:/Users/b3nsc/OneDrive - The University of Sydney (Students)/Documents/University/Societies/Robotics/DRC Code/TestFootage/AlternatingPurple.avi"
+    dir = "C:/Users/b3nsc/OneDrive - The University of Sydney (Students)/Documents/University/Societies/Robotics/DRC Code/AlternatingPurple.avi"
 
     # videoGetter = VideoGet(dir).start()
 
@@ -205,5 +206,6 @@ def main():
 
 if __name__ == "__main__":
     print("Initialising...")
+    print(cv.__version__)
     main()
 
