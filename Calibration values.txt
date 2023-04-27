@@ -1,0 +1,25 @@
+process:
+1. Get image,
+2. blur
+3. Threshold
+4. Identify contours.
+5. From that get a target point. 
+6. Target that from current position using encoder.
+
+yellow
+
+lh 25
+hh 35
+
+ls 45
+hs 244
+lv 97
+hv 247
+
+blue
+low H: 60
+high h: 110
+low s: 26
+high s: 198
+low v: 39
+high v: 186
